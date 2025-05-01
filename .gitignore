@@ -1,0 +1,9 @@
+# Python-specific
+__pycache__/
+*.py[cod]
+*.csv
+.env
+venv/
+fresh_env/
+.DS_Store
+.vscode/
