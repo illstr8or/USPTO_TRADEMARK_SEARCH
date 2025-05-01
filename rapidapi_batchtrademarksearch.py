@@ -40,6 +40,37 @@ with open(output_filename, mode='w', newline='') as csvfile:
 
 FUZZY_THRESHOLD = 75
 
+# Perform exact match checks for each unique target name
+checked_names = set()
+for target_name, _ in search_pairs:
+    if target_name in checked_names:
+        continue
+    checked_names.add(target_name)
+
+    exact_url = f"https://{api_host}/v1/trademarkSearch/{target_name}/active"
+    print(f"\n🔎 Checking exact match for '{target_name}'...")
+    response = requests.get(exact_url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        exact_results = data.get("items", [])
+        if exact_results:
+            top = exact_results[0]
+            print(f"⚠️ Exact trademark found for '{target_name}' — Serial: {top.get('serial_number')}")
+            with open(output_filename, mode='a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([target_name, "EXACT", top.get("keyword", "— Exact match —"), 100, top.get("status_label", ""), top.get("serial_number", "")])
+        else:
+            print(f"✅ No exact match found for '{target_name}'")
+            with open(output_filename, mode='a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([target_name, "EXACT", "— No matches —", 0, "", ""])
+    else:
+        print(f"❌ Error checking exact match for '{target_name}': {response.status_code}")
+        with open(output_filename, mode='a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([target_name, "EXACT", f"— API Error {response.status_code} —", 0, "", ""])
+
 for target_name, stem in search_pairs:
     url = f"https://{api_host}/v1/trademarkSearch/{stem}/active"
     print(f"\n🔍 Searching for similar marks to '{target_name}' using stem '{stem}'...")
@@ -49,6 +80,13 @@ for target_name, stem in search_pairs:
         data = response.json()
         results = data.get("items", [])
         print(f"📦 Pulled {len(results)} trademarks for '{stem}'")
+
+        if not results:
+            print(f"✅ No trademarks returned for stem '{stem}'")
+            with open(output_filename, mode='a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([target_name, stem, "— No trademarks found —", 0, "", ""])
+            continue
 
         fuzzy_hits = []
         for entry in results:
@@ -66,6 +104,9 @@ for target_name, stem in search_pairs:
                     writer.writerow([target_name, stem, match[0], match[1], match[2], match[3]])
         else:
             print(f"✅ No fuzzy matches found for '{target_name}'")
+            with open(output_filename, mode='a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([target_name, stem, "— No matches —", 0, "", ""])
     else:
         print(f"❌ Error searching for '{target_name}': {response.status_code}")
         print(response.text)
