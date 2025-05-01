@@ -107,6 +107,26 @@ trademark_fuzzy_matches_20250430_121530.csv
 
 ---
 
+## 📊 Streamlit Dashboard
+
+You can also explore your results using the included dashboard:
+
+```bash
+streamlit run trademark_dashboard_fixed.py
+```
+
+This dashboard allows you to:
+- View fuzzy match verdicts at a glance (✅ Clear, ⚠️ Risk, ❌ Blocked)
+- Filter and sort based on match type and confidence
+- Share screenshots or deploy it for collaborators
+
+To deploy publicly via Streamlit Cloud, make sure your repo includes:
+- This `README.md`
+- A `requirements.txt` file with `streamlit`, `pandas`, and `requests` listed
+- Your dashboard file (e.g., `trademark_dashboard_fixed.py`)
+
+---
+
 ## 🗂 Example CSV Output
 
 | Target Name | Search Stem | Matched Mark | Score | Status          | Serial Number |
