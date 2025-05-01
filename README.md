@@ -1,149 +1,151 @@
 # USPTO Trademark Search Tool
 
-This project provides a Python-based tool for searching the USPTO's Trademark Status and Document Retrieval (TSDR) API to identify potential trademark conflicts or matches for your proposed trademark names.
+This Python tool allows you to perform batch trademark name analysis using the USPTO’s trademark database via RapidAPI. It includes fuzzy matching logic to help identify potentially conflicting or similar trademarks based on keyword stems and brand name intent.
 
-## Project Overview
+---
 
-The tool allows you to:
-- Search for exact or similar matches to your proposed trademark names
-- Retrieve detailed information about existing trademarks
-- Analyze potential conflicts with active trademarks
-- Save search results and generate summary reports
+## ✅ Features
 
-## Setup Instructions
+- 🔍 Batch-check potential trademarks via keyword stem search
+- 🤖 Fuzzy match using `rapidfuzz` to find similar or lookalike names
+- 📊 Outputs results to both terminal and CSV for analysis
+- ⚡ Lightweight, fast, and customizable — ideal for early-stage naming research
 
-### Prerequisites
-- Python 3.6 or higher
-- Visual Studio Code
-- An internet connection
+---
 
-### Installation Steps
+## 📦 Requirements
 
-1. **Create a new project folder and open it in VS Code**
-   ```
-   mkdir uspto_trademark_search
-   cd uspto_trademark_search
-   code .
-   ```
+- Python 3.8+
+- RapidAPI account with access to [`uspto-trademark`](https://rapidapi.com/jaredcwilson/api/uspto-trademark/)
+- Internet connection
 
-2. **Create a Python virtual environment**
-   ```
-   # For macOS/Linux
-   python3 -m venv venv
-   
-   # For Windows
-   python -m venv venv
-   ```
+---
 
-3. **Activate the virtual environment**
-   ```
-   # For macOS/Linux
-   source venv/bin/activate
-   
-   # For Windows
-   venv\Scripts\activate
-   ```
+## 🔧 Setup
 
-4. **Install required packages**
-   ```
-   pip install requests
-   ```
+### 1. Clone the repo
 
-5. **Save the code from the provided artifact as `uspto_search.py` in your project folder**
+```bash
+git clone https://github.com/illstr8or/USPTO_TRADEMARK_SEARCH.git
+cd USPTO_TRADEMARK_SEARCH
+```
 
-6. **Test the installation**
-   ```
-   python uspto_search.py
-   ```
+### 2. Create and activate a virtual environment (optional but recommended)
 
-## Usage Guide
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-### Basic Usage
+### 3. Install dependencies
 
-1. Open `uspto_search.py` in VS Code
-2. Modify the `trademark_names` list in the `main()` function to include your desired trademark names:
-   ```python
-   trademark_names = [
-       "YOUR_FIRST_NAME",
-       "YOUR_SECOND_NAME",
-       # Add up to 6 names
-   ]
-   ```
-3. Run the script using VS Code's built-in tools or from the terminal:
-   ```
-   python uspto_search.py
-   ```
+```bash
+pip install -r requirements.txt
+```
 
-### Customizing Search Parameters
+Or manually:
 
-You can customize the search behavior by modifying the `search_trademark` method. For example:
+```bash
+pip install requests python-dotenv rapidfuzz
+```
 
-- To perform a prefix search (finding trademarks that start with your search term) instead of an exact match:
-  ```python
-  data = {
-      "searchText": name,
-      "options": {
-          "searchType": "PREFIX_SEARCH",  # Change from EXACT_SEARCH
-          # ... other options remain the same
-      }
-  }
-  ```
+### 4. Create a `.env` file with your API key
 
-- To perform a suffix search (finding trademarks that end with your search term):
-  ```python
-  data = {
-      "searchText": name,
-      "options": {
-          "searchType": "SUFFIX_SEARCH",  # Change from EXACT_SEARCH
-          # ... other options remain the same
-      }
-  }
-  ```
+```env
+X_RAPIDAPI_KEY=your-rapidapi-key-here
+```
 
-### Understanding Results
+---
 
-The script creates a directory structure in your project folder:
-- `uspto_results/` - Base directory for all results
-  - `{trademark_name}_{timestamp}/` - Directory for each trademark search
-    - `analysis.json` - Analysis of potential conflicts
-    - `search_results.json` - Raw search results from the USPTO API
-  - `summary_report_{timestamp}.txt` - A human-readable summary of all search results
+## 🧠 How It Works
 
-### Interpreting Conflicts
+The tool takes a list of brand names and matches each against broader **stem keywords** (e.g., `"LEAPWISE"` vs. `"LEAP"` and `"WISE"`). It queries the USPTO API, pulls up to 250 trademarks per stem, and then uses `rapidfuzz` to compare your brand name to each trademark's name.
 
-A trademark is considered a potential conflict if:
-1. It matches or is similar to your search term
-2. It has a status of "LIVE" or "PENDING"
+---
 
-When reviewing results, pay special attention to:
-- Marks in similar goods/services classes
-- Marks with visual or phonetic similarities
-- Recently registered marks
+## ✏️ Customization
 
-## Troubleshooting
+Edit the `search_pairs` list in `rapidapi_batchtrademarksearch.py` to define your desired names and stems:
 
-If you encounter issues:
+```python
+search_pairs = [
+    ("LEAPWISE", "LEAP"),
+    ("LEAPWISE", "WISE"),
+    ("SPRINGIFY", "SPRING"),
+    ("STRIDEON", "STRIDE"),
+]
+```
 
-1. **API Rate Limiting**: If you receive HTTP 429 errors, the script may be hitting rate limits. Increase the `time.sleep()` duration in the `process_trademark_names` method.
+You can set your **fuzzy match threshold** like so:
 
-2. **Network Issues**: Ensure you have a stable internet connection. The script requires access to the USPTO's API.
+```python
+FUZZY_THRESHOLD = 75
+```
 
-3. **JSON Parsing Errors**: If the API returns unexpected data formats, check the USPTO documentation for any API changes.
+---
 
-## Note on Legal Advice
+## 🚀 Running the Script
 
-This tool provides informational results only and should not be considered legal advice. For definitive trademark clearance, consult with a qualified trademark attorney who can provide a comprehensive analysis.
+```bash
+python rapidapi_batchtrademarksearch.py
+```
 
-## Next Steps
+You’ll see output like this in your terminal:
 
-After identifying potential conflicts:
-1. Review the detailed information for each conflict
-2. Consider consulting a trademark attorney for professional guidance
-3. Explore alternative trademark names if significant conflicts exist
-4. For marks with minimal conflicts, consider proceeding with formal trademark application
+```
+🔍 Searching for similar marks to 'LEAPWISE' using stem 'LEAP'...
+📦 Pulled 250 trademarks for 'LEAP'
+🔎 Fuzzy matches for 'LEAPWISE':
+ - LEAPWIT (score: 80.0) — Status: Live/Registered, Serial: 90291861
+```
 
-## Resources
+And a timestamped CSV will be created like:
 
-- [USPTO TSDR API Documentation](https://developer.uspto.gov/ibd-api/swagger-ui.html)
-- [USPTO Trademark Basics](https://www.uspto.gov/trademarks/basics)
-- [USPTO Trademark Search](https://tmsearch.uspto.gov/)
+```
+trademark_fuzzy_matches_20250430_121530.csv
+```
+
+---
+
+## 🗂 Example CSV Output
+
+| Target Name | Search Stem | Matched Mark | Score | Status          | Serial Number |
+|-------------|-------------|---------------|-------|------------------|----------------|
+| LEAPWISE    | LEAP        | LEAPWIT       | 80.0  | Live/Registered | 90291861       |
+| STRIDEON    | STRIDE      | STRIDER       | 80.0  | Live/Registered | 87708995       |
+
+---
+
+## 🛡 Recommended .gitignore
+
+```gitignore
+# Python
+*.pyc
+__pycache__/
+.env
+*.csv
+venv/
+.vscode/
+```
+
+---
+
+## 🧪 Future Ideas
+
+- Class code filtering (e.g., only tech/education trademarks)
+- Merge active + inactive trademark pools
+- Web-based UI with search history
+- Phonetic matching (e.g., Metaphone or Soundex)
+- Batch export across mark categories
+
+---
+
+## 📘 Disclaimer
+
+This tool is provided for exploratory research only and **does not constitute legal advice**. Always consult a trademark attorney before filing or investing in a brand name.
+
+---
+
+## 📝 License
+
+MIT License © 2025 [@illstr8or](https://github.com/illstr8or)
