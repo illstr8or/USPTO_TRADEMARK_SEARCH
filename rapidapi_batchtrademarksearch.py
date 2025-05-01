@@ -88,25 +88,43 @@ for target_name, stem in search_pairs:
                 writer.writerow([target_name, stem, "— No trademarks found —", 0, "", ""])
             continue
 
-        fuzzy_hits = []
+        fuzzy_all = []
         for entry in results:
             mark_name = entry.get("keyword", "")
-            score = fuzz.token_sort_ratio(target_name.lower(), mark_name.lower())
-            if score >= FUZZY_THRESHOLD:
-                fuzzy_hits.append((mark_name, score, entry.get("status_label"), entry.get("serial_number")))
+            score_1 = fuzz.token_sort_ratio(target_name.lower(), mark_name.lower())
+            score_2 = fuzz.partial_ratio(target_name.lower(), mark_name.lower())
+            score_3 = fuzz.token_set_ratio(target_name.lower(), mark_name.lower())
+            final_score = max(score_1, score_2, score_3)
+            fuzzy_all.append((mark_name, final_score, entry.get("status_label"), entry.get("serial_number")))
 
-        if fuzzy_hits:
-            print(f"🔎 Fuzzy matches for '{target_name}' (score ≥ {FUZZY_THRESHOLD}):")
-            with open(output_filename, mode='a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
+        fuzzy_hits = [match for match in fuzzy_all if match[1] >= FUZZY_THRESHOLD]
+
+        top_matches = sorted(fuzzy_all, key=lambda x: -x[1])[:3]
+
+        with open(output_filename, mode='a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+
+            if fuzzy_hits:
+                print(f"🔎 Fuzzy matches for '{target_name}' (score ≥ {FUZZY_THRESHOLD}):")
+                seen = set()
+                deduped_matches = []
                 for match in sorted(fuzzy_hits, key=lambda x: -x[1]):
+                    if match[0] not in seen:
+                        deduped_matches.append(match)
+                        seen.add(match[0])
+                for match in deduped_matches:
                     print(f" - {match[0]} (score: {match[1]}) — Status: {match[2]}, Serial: {match[3]}")
                     writer.writerow([target_name, stem, match[0], match[1], match[2], match[3]])
-        else:
-            print(f"✅ No fuzzy matches found for '{target_name}'")
-            with open(output_filename, mode='a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
+            else:
+                print(f"✅ No fuzzy matches found for '{target_name}'")
                 writer.writerow([target_name, stem, "— No matches —", 0, "", ""])
+
+            # Log top 3 matches, even if below threshold, but skip duplicates already in fuzzy_hits
+            existing_keywords = set(m[0] for m in fuzzy_hits)
+            for match in top_matches:
+                if match[0] not in existing_keywords:
+                    label = "Below Threshold" if match[1] < FUZZY_THRESHOLD else match[2]
+                    writer.writerow([target_name, stem, match[0], match[1], label, match[3]])
     else:
         print(f"❌ Error searching for '{target_name}': {response.status_code}")
         print(response.text)
