@@ -17,19 +17,10 @@ headers = {
 
 # (target_name, broader_stem_to_search)
 search_pairs = [
-    ("LEAPWISE", "LEAP"),
-    ("LEAPWISE", "WISE"),
-    ("LEAPWORKS", "LEAP"),
-    ("LEAPWORKS", "WORKS"),
-    ("SPRINGIFY", "SPRING"),
-    ("SPRYNOVA", "SPRY"),
-    ("STRIDEON", "STRIDE"),
-    ("MOBILE ERA OF INTENT", "MOBILE"),
-    ("MOBILE ERA OF INTENT", "INTENT"),
-    ("MOBILE ERA OF INTENT", "ERA"),
-    ("EXPERIENCE CONTINUITY", "EXPERIENCE"),
-    ("EXPERIENCE CONTINUITY", "CONTINUITY"),
-    ("SPRYNETIC", "SPRY")
+    ("THE MOBILE ERA OF INTENT", "INTENT"),
+    ("THE MOBILE ERA OF INTENT", "MOBILE"),
+    ("THE MOBILE ERA OF INTENT", "ERA"),
+    ("MEI", "MEI")
 ]
 
 output_dir = os.path.dirname(__file__)
